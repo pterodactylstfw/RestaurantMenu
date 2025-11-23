@@ -1,84 +1,139 @@
 package unitbv.mip;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class Main {
+    private static final ObjectMapper mapper = new ObjectMapper();
+
     public static void main(String[] args) {
+        mapper.enable(SerializationFeature.INDENT_OUTPUT); // Pretty print JSON
 
-        Product chickenMeat = new Food("Carne de pui", 25.5, 350, Category.FELURI_PRINCIPALE, false);
-        Product bolognesePasta = new Food("Paste Bolognese", 28.0, 300, Category.FELURI_PRINCIPALE, false);
-        Product caesarSalad =  new Food("Salată Caesar", 30.0, 250, Category.APERITIVE, false);
-        Product pizza = new Food("Pizza Margherita", 35.0, 400, Category.FELURI_PRINCIPALE, true);
-        Product lavaCake = new Food("Lava Cake", 20.0, 150, Category.DESERTURI, true);
-        Product water = new Drink("Apă", 9.0, 0.5, false);
-        Product orangeJuice = new Drink("Suc de portocale", 12.0, 0.33, false);
-        Product beer = new Drink("Bere", 10.0, 0.5, true);
+        setupGlobalConfiguration();
 
-        // Creare Pizza Custom cu Builder
+
+        List<Product> allProducts = createProductList();
+        Menu restaurantMenu = createMenuFromList(allProducts);
+
+        System.out.println("\n--- Meniu Restaurant \"La Andrei\" ---");
+        restaurantMenu.printMenu();
+
+        runOrderScenarios(restaurantMenu);
+
+        exportMenuData(allProducts);
+    }
+
+
+    private static void setupGlobalConfiguration() {
+        try {
+            File configFile = new File("config.json");
+            AppConfig config = mapper.readValue(configFile, AppConfig.class);
+
+            // Setăm variabilele statice globale
+            Order.TVA = config.getTVA();
+
+            System.out.println("--- INIȚIALIZARE SISTEM ---");
+            System.out.println("Configurație încărcată cu succes!");
+            System.out.println("Nume Restaurant: " + config.getRestaurantName());
+            System.out.println("TVA setat la: " + (Order.TVA * 100) + "%");
+
+        } catch (IOException e) {
+            // Tratăm eroarea critică aici și oprim aplicația
+            System.err.println("\n[EROARE] Nu s-a putut citi config.json");
+            System.err.println("Mesaj: Fișierul de configurare lipsește sau este corupt. Vă rugăm contactați suportul tehnic.");
+            System.err.println("Detalii tehnice: " + e.getMessage());
+            System.exit(1);
+        }
+    }
+
+
+    private static List<Product> createProductList() {
+        List<Product> products = new ArrayList<>();
+
+        products.add(new Food("Carne de pui", 25.5, 350, Category.FELURI_PRINCIPALE, false));
+        products.add(new Food("Paste Bolognese", 28.0, 300, Category.FELURI_PRINCIPALE, false));
+        products.add(new Food("Pizza Margherita", 35.0, 400, Category.FELURI_PRINCIPALE, true));
+        products.add(new Food("Salată Caesar", 30.0, 250, Category.APERITIVE, false));
+        products.add(new Food("Lava Cake", 20.0, 150, Category.DESERTURI, true));
+
+        products.add(new Drink("Apă", 9.0, 0.5, false));
+        products.add(new Drink("Suc de portocale", 12.0, 0.33, false));
+        products.add(new Drink("Bere", 10.0, 0.5, true));
+
         Product customPizza = new Pizza.PizzaBuilder("Pufos", "Dulce", 20.0)
                 .withName("Pizza Casei")
                 .addTopping("Mozzarella", 5.0, 50, false)
                 .addTopping("Bacon", 6.0, 40, true)
                 .addTopping("Ciuperci", 3.0, 30, false)
                 .build();
+        products.add(customPizza);
 
-        Menu restaurantMenu = new Menu();
-        restaurantMenu.addProduct(chickenMeat);
-        restaurantMenu.addProduct(bolognesePasta);
-        restaurantMenu.addProduct(caesarSalad);
-        restaurantMenu.addProduct(pizza);
-        restaurantMenu.addProduct(lavaCake);
-        restaurantMenu.addProduct(water);
-        restaurantMenu.addProduct(orangeJuice);
-        restaurantMenu.addProduct(beer);
-        restaurantMenu.addProduct(customPizza);
+        return products;
+    }
 
-        System.out.println("\n>>> 1. Meniul complet pe categorii:");
-        restaurantMenu.printMenu();
+    private static Menu createMenuFromList(List<Product> products) {
+        Menu menu = new Menu();
+        for (Product p : products) {
+            menu.addProduct(p);
+        }
+        return menu;
+    }
 
-        System.out.println("\n>>> 2. Produse Vegetariene (Sortate Alfabetic):");
-        List<Product> vegProducts = restaurantMenu.getVegetarianFoodsSorted();
-        vegProducts.forEach(System.out::println);
 
-        System.out.println("\n>>> 3. Statistici:");
-        System.out.println("Preț mediu deserturi: " + restaurantMenu.getAverageDessertPrice() + " RON");
-        System.out.println("Avem produse scumpe (>100 RON)? " + (restaurantMenu.hasExpensiveProduct() ? "DA" : "NU"));
-
-        System.out.println("\n>>> 4. Căutare Produs:");
-        String searchFor = "Pizza Margherita";
-        Optional<Product> result = restaurantMenu.searchProductInMenu(searchFor);
-
-        result.ifPresentOrElse(
-                p -> System.out.println("Găsit: " + p),
-                () -> System.out.println("Produsul " + searchFor + " nu a fost găsit.")
-        );
+    private static void runOrderScenarios(Menu menu) {
+        System.out.println("VERIFICARE STRATEGII DE DISCOUNT");
 
         Order myOrder = new Order();
-        myOrder.addProduct(chickenMeat, 2);
-        myOrder.addProduct(beer, 3);
-        myOrder.addProduct(caesarSalad, 1);
-        myOrder.addProduct(orangeJuice, 2);
-        myOrder.addProduct(pizza, 2);
-        myOrder.addProduct(customPizza, 1);
 
-        System.out.println("\n--- Detalii comandă curentă ---");
-        List<OrderItem> items = myOrder.getItems();
-        for (OrderItem item : items) {
+        try {
+            addProductToOrder(myOrder, menu, "Carne de pui", 1);
+            addProductToOrder(myOrder, menu, "Bere", 3);           // Pt Happy Hour
+            addProductToOrder(myOrder, menu, "Pizza Casei", 1);    // Pizza Custom
+            addProductToOrder(myOrder, menu, "Apă", 1);            // Pt Promoție
+        } catch (RuntimeException e) {
+            System.err.println("Eroare la crearea comenzii: " + e.getMessage());
+            return;
+        }
+
+        System.out.println("\n>>> Conținutul Comenzii:");
+        for (OrderItem item : myOrder.getItems()) {
             System.out.println(item.toString() + " | Preț unitar: " + item.getProduct().getPrice() + " RON");
         }
 
-        System.out.println("\n--- Total standard ---");
-        System.out.println("Total de plată (TVA 9% inclus): " + String.format("%.2f", myOrder.calculateTotal()) + " RON");
+        System.out.println("\n--- 1. Total Standard (Fără reduceri) ---");
+        System.out.println("Total de plată: " + String.format("%.2f", myOrder.calculateTotal()) + " RON");
 
-        System.out.println("\n--- Happy Hour (-20% la alcool) ---");
+        System.out.println("\n--- 2. Happy Hour (Reducere 20% la alcool) ---");
         myOrder.setStrategy(DiscountStrategies::applyHappyHourStrategy);
         System.out.println("Total de plată Happy Hour: " + String.format("%.2f", myOrder.calculateTotal()) + " RON");
 
-        System.out.println("\n--- Valentine's Day (10% reducere la tot) ---");
-        myOrder.setStrategy(DiscountStrategies::ValentinesDayStrategy);
-        System.out.println("Total de plată Valentine's Day: " + String.format("%.2f", myOrder.calculateTotal()) + " RON");
+        System.out.println("\n--- 3. Promoție: Pizza + Băutură Gratis ---");
+        myOrder.setStrategy(DiscountStrategies::applyFreeDrinkStrategy);
+        System.out.println("Total de plată Promoție: " + String.format("%.2f", myOrder.calculateTotal()) + " RON");
 
-        System.out.println("\n ------------------------------------------ ");
+        System.out.println("\n--- 4. Valentine's Day (10% la tot) ---");
+        myOrder.setStrategy(DiscountStrategies::ValentinesDayStrategy);
+        System.out.println("Total de plată Valentine's: " + String.format("%.2f", myOrder.calculateTotal()) + " RON");
+    }
+
+    private static void addProductToOrder(Order order, Menu menu, String productName, int qty) {
+        Product p = menu.searchProductInMenu(productName)
+                .orElseThrow(() -> new RuntimeException("Produsul '" + productName + "' nu există în meniu!"));
+        order.addProduct(p, qty);
+    }
+
+    private static void exportMenuData(List<Product> products) {
+        System.out.println("\n--- EXPORT MENIU ---");
+        try {
+            mapper.writeValue(new File("menu_export.json"), products);
+            System.out.println("Meniul a fost exportat cu succes în 'menu_export.json'.");
+        } catch (IOException e) {
+            System.err.println("Nu s-a putut exporta meniul (" + e.getMessage() + ")");
+        }
     }
 }

@@ -5,8 +5,9 @@ import java.util.List;
 
 public class Order {
     private List<OrderItem> items = new ArrayList<>();
-    private static final double TAX_RATE = 0.09;
     private DiscountStrategy strategy;
+
+    public static double TVA = 0.09;
 
     public Order() {
         this.strategy = order -> order.getSubtotalNet();
@@ -50,7 +51,7 @@ public class Order {
         double discountedSubtotal = strategy.calculateDiscountedSubtotal(this);
 
         // Aplică TVA-ul peste subtotalul redus
-        return discountedSubtotal * (1 + TAX_RATE);
+        return discountedSubtotal * (1 + TVA);
     }
 
 }
