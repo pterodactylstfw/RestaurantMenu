@@ -5,7 +5,7 @@ public final class Drink extends Product {
     private boolean isAlcoholic;
 
     public Drink(String name, double price, double volume, boolean isAlcoholic) {
-        super(name, price);
+        super(name, price, Category.BAUTURI);
         this.volume = volume;
         this.isAlcoholic = isAlcoholic;
     }
