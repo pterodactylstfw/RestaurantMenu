@@ -1,6 +1,6 @@
 package unitbv.mip;
 
-public abstract class Product {
+public sealed abstract class Product permits Food, Drink {
     private String name;
     private double price;
 

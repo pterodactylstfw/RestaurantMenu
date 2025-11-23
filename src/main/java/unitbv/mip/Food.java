@@ -1,6 +1,6 @@
 package unitbv.mip;
 
-public class Food extends Product {
+public final class Food extends Product {
     private double weight;
 
     public Food(String name, double price, double weight) {
