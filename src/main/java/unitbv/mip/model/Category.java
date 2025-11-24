@@ -1,4 +1,4 @@
-package unitbv.mip;
+package unitbv.mip.model;
 
 public enum Category {
     APERITIVE,

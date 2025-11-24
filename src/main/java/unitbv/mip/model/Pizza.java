@@ -1,4 +1,4 @@
-package unitbv.mip;
+package unitbv.mip.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,9 +42,9 @@ public final class Pizza extends Food {
         private final String crust;
         private final String sauce;
         private List<String> toppings = new ArrayList<>();
-        private String name = "Pizza Custom"; // Nume default
+        private String name = "Pizza CumVreiTu";
         private double price;
-        private double weight = 300; // Greutate de bază (blat + sos)
+        private double weight = 300;
         private boolean isVegetarian = true;
 
         public PizzaBuilder(String crust, String sauce, double basePrice) {

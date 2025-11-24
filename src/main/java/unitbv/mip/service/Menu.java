@@ -1,4 +1,8 @@
-package unitbv.mip;
+package unitbv.mip.service;
+
+import unitbv.mip.model.Category;
+import unitbv.mip.model.Food;
+import unitbv.mip.model.Product;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,5 +54,5 @@ public class Menu {
             System.out.println("\n--- " + category + " ---");
             products.forEach(System.out::println);
         });
-    } // metoda helper
+    }
 }

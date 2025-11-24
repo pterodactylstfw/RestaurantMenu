@@ -1,4 +1,4 @@
-package unitbv.mip;
+package unitbv.mip.config;
 
 public class AppConfig {
     private String restaurantName;

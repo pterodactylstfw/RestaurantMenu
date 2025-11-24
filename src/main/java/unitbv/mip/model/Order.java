@@ -1,4 +1,6 @@
-package unitbv.mip;
+package unitbv.mip.model;
+
+import unitbv.mip.strategy.DiscountStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,15 +19,13 @@ public class Order {
     public void addProduct(Product product, int quantity) {
         if (quantity <= 0) return;
 
-        // Căutăm dacă produsul există deja în listă
         for (OrderItem item : items) {
-            if (item.getProduct().equals(product)) { // Aici ne bazăm pe equals (sau comparăm nume/referință)
+            if (item.getProduct().equals(product)) {
                 item.addQuantity(quantity);
-                return; // Am găsit, am actualizat, ieșim
+                return;
             }
         }
 
-        // Dacă nu există, adăugăm unul nou
         items.add(new OrderItem(product, quantity));
     }
 
@@ -47,10 +47,8 @@ public class Order {
     }
 
     public double calculateTotal() {
-        // Calculează subtotalul folosind strategia curentă
         double discountedSubtotal = strategy.calculateDiscountedSubtotal(this);
 
-        // Aplică TVA-ul peste subtotalul redus
         return discountedSubtotal * (1 + TVA);
     }
 

@@ -1,9 +1,17 @@
 package unitbv.mip;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import unitbv.mip.config.AppConfig;
+import unitbv.mip.config.ConfigException;
+import unitbv.mip.model.*;
+import unitbv.mip.service.Menu;
+import unitbv.mip.strategy.DiscountStrategies;
+
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,10 +20,15 @@ public class Main {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public static void main(String[] args) {
-        mapper.enable(SerializationFeature.INDENT_OUTPUT); // Pretty print JSON
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-        setupGlobalConfiguration();
-
+        try {
+            setupGlobalConfiguration();
+        } catch (ConfigException e) {
+            System.err.println(e.getMessage());
+            System.err.println("Fișierul de configurare lipsește sau este corupt. Vă rugăm să contactați echipa de suport tehnic.");
+            System.exit(1);
+        }
 
         List<Product> allProducts = createProductList();
         Menu restaurantMenu = createMenuFromList(allProducts);
@@ -29,12 +42,11 @@ public class Main {
     }
 
 
-    private static void setupGlobalConfiguration() {
+    private static void setupGlobalConfiguration() throws ConfigException {
         try {
             File configFile = new File("config.json");
             AppConfig config = mapper.readValue(configFile, AppConfig.class);
 
-            // Setăm variabilele statice globale
             Order.TVA = config.getTVA();
 
             System.out.println("--- INIȚIALIZARE SISTEM ---");
@@ -42,12 +54,18 @@ public class Main {
             System.out.println("Nume Restaurant: " + config.getRestaurantName());
             System.out.println("TVA setat la: " + (Order.TVA * 100) + "%");
 
+        } catch (FileNotFoundException e) {
+            throw new ConfigException(
+                    "Fișierul de configurare 'config.json' nu a fost găsit.",
+                    e);
+        } catch (JsonProcessingException e) {
+            throw new ConfigException(
+                    "Fișierul de configurare este corupt sau are un format JSON invalid.",
+                    e);
         } catch (IOException e) {
-            // Tratăm eroarea critică aici și oprim aplicația
-            System.err.println("\n[EROARE] Nu s-a putut citi config.json");
-            System.err.println("Mesaj: Fișierul de configurare lipsește sau este corupt. Vă rugăm contactați suportul tehnic.");
-            System.err.println("Detalii tehnice: " + e.getMessage());
-            System.exit(1);
+            throw new ConfigException(
+                    "A apărut o eroare generală la citirea configurării.",
+                    e);
         }
     }
 

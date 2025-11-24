@@ -1,4 +1,4 @@
-package unitbv.mip;
+package unitbv.mip.model;
 
 public sealed abstract class Product permits Food, Drink {
     private String name;

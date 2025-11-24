@@ -1,4 +1,4 @@
-package unitbv.mip;
+package unitbv.mip.model;
 
 public non-sealed class Food extends Product {
     private double weight;

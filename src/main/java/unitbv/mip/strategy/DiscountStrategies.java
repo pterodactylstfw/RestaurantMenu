@@ -1,6 +1,9 @@
-package unitbv.mip;
+package unitbv.mip.strategy;
 
-import java.util.Map;
+import unitbv.mip.model.Drink;
+import unitbv.mip.model.Order;
+import unitbv.mip.model.OrderItem;
+import unitbv.mip.model.Product;
 
 public final class DiscountStrategies {
     public static double applyHappyHourStrategy(Order order) {
@@ -12,9 +15,9 @@ public final class DiscountStrategies {
             int quantity = item.getQuantity();
 
             if ((product instanceof Drink) && ((Drink) product).isAlcoholic()) {
-                finalSubtotal += product.getPrice() * quantity * 0.8; // -20%
+                finalSubtotal += product.getPrice() * quantity * 0.8;
             } else {
-                finalSubtotal += item.getSubtotalNet(); // Preț întreg
+                finalSubtotal += item.getSubtotalNet();
             }
         }
         return finalSubtotal;

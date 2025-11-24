@@ -1,4 +1,4 @@
-package unitbv.mip;
+package unitbv.mip.model;
 
 public final class Drink extends Product {
     private double volume;
